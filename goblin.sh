@@ -1,13 +1,17 @@
 #! /bin/sh
 
+# TODO - goblin
+# - figure out why we need the sleep 1
+# - Generate json for all services
+# - Get better data on how many heartbeats we had
+# - Sentralize logging
+
 log() {
   echo "$EKKO_IP - Goblin: $1"
 }
 
-SERVICE_PORT=0
-
-
-sleep 1 # TODO figure out why we need this
+sleep 1
+service_json="{\"services\" :[{\"name\":\"${SERVICE_NAME}\",\"ip\":\"${EKKO_IP}\",\"port\":\"${SERVICE_PORT}\"}]}"
 
 log "Entering the forest of: ${EKKO_MULTICAST} owned by the family: ${EKKO_MASK}"
 log "Calling for the master Troll"
@@ -16,11 +20,8 @@ heartbeats=hugs
 
 if [[ -n "$response" ]]; then
   while [[ -n "$heartbeats" ]]; do
-  SERVICE_PORT=$(( SERVICE_PORT + 1 ))
-  service_json="{\"service\":\"${SERVICE}\",\"ip\":\"${EKKO_IP}\", \"service_port\":\"${SERVICE_PORT}\"}"
     log "Standing by for our master Troll:${response}"
     heartbeats=$(timeout -t "${EKKO_TIMEOUT}" socat -d UDP4-RECVFROM:6666,ip-add-membership="${response}":"${EKKO_IP}",fork EXEC:"echo $service_json"  2>&1 | grep 'Connection reset by peer')
-    echo "$heartbeats"
   done
   log "Our troll is dead. We shall move on to the next master"
 else

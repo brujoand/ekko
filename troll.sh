@@ -1,5 +1,11 @@
 #! /bin/sh
 
+# TODO - Troll
+# - Be aware of how many goblins we control
+# - Parse json from goblins with JQ
+# - Setup a socat for listing all services as json
+# - Check if we should go back to being a goblin
+
 log() {
   echo "$EKKO_IP - Troll: $1"
 }
