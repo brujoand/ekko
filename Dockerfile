@@ -1,11 +1,11 @@
 FROM alpine
 
-RUN apk -U add socat
+RUN apk -U add socat jq
 
-COPY ekko.sh /ekko.sh
+COPY shout.sh /shout.sh
 COPY troll.sh /troll.sh
-COPY tusse.sh /tusse.sh
+COPY goblin.sh /goblin.sh
 
 EXPOSE 6666
 
-ENTRYPOINT /ekko.sh
+ENTRYPOINT /shout.sh

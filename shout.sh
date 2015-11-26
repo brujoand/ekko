@@ -10,12 +10,8 @@ export EKKO_MASK
 export EKKO_MULTICAST
 export EKKO_TIMEOUT
 
-log() {
-  echo "$EKKO_IP - $1"
-}
-
 while true; do
-  ./tusse.sh
+  ./goblin.sh
   if [[ $? -eq 1 ]]; then
     ./troll.sh
   fi
