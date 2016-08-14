@@ -6,8 +6,8 @@ function log() {
 
 HOST_IP=$(ip -o -4 addr list eth0 | grep -oE "([0-9]+[.])+[0-9]+")
 NETWORK_MASK=$(ip -o -4 route | sed -En 's/([0-9]+[.][0-9]\/[0-9]+) .*/\1/p')
-EKKO_MULTICAST=224.1.0.1
-EKKO_POLL_RATE=30
+EKKO_MULTICAST=${EKKO_MULTICAST:-'224.1.0.1'}
+EKKO_POLL_RATE=${EKKO_POLL_RATE:-120}
 
 
 log "Ekko botstrapped completed"
@@ -36,10 +36,16 @@ function shout() {
 }
 
 function keep_shouting() {
+  hook_script=$1
+  set -e
+  response=
+  echo ${response}
   while true; do
-    shout
+    services="{ services: [ $(shout | sed 's/^}$/,}/') ] }"
+    "$hook_script" "${services}"
     sleep "$EKKO_POLL_RATE"
   done
+  set +e
 }
 
 case $1 in
@@ -47,10 +53,15 @@ case $1 in
     respond_to_shouts
     ;;
   shout)
-    keep_shouting
+    if [[ -z $2 ]]; then
+      log "No hook script defined at arg 2, defaulting to just logging"
+      keep_shouting "log"
+    else
+      keep_shouting "$2"
+    fi
     ;;
   *)
-    echo "You need to choose (ekko/shout)"
+    echo "You need to choose listen or shout"
     exit 1
     ;;
 esac
