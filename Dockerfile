@@ -1,11 +1,11 @@
 FROM alpine
 
-RUN apk -U add socat jq
+ENV "PATH=${PATH}:/usr/local/bin"
 
-COPY shout.sh /shout.sh
-COPY troll.sh /troll.sh
-COPY goblin.sh /goblin.sh
+RUN apk -U add socat jq bash
+
+COPY ./bin/* /usr/local/bin/
 
 EXPOSE 6666
 
-ENTRYPOINT /shout.sh
+ENTRYPOINT ekko.sh
