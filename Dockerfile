@@ -4,8 +4,10 @@ ENV "PATH=${PATH}:/usr/local/bin"
 
 RUN apk -U add socat jq bash
 
-COPY ./bin/* /usr/local/bin/
+COPY ekko /usr/local/bin/ekko
 
 EXPOSE 6666
 
-ENTRYPOINT ekko.sh
+CMD [ "listen" ]
+
+ENTRYPOINT [ "ekko" ]

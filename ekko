@@ -1,0 +1,56 @@
+#! /usr/bin/env bash
+
+function log() {
+  echo "$HOST_IP: $1"
+}
+
+HOST_IP=$(ip -o -4 addr list eth0 | grep -oE "([0-9]+[.])+[0-9]+")
+NETWORK_MASK=$(ip -o -4 route | sed -En 's/([0-9]+[.][0-9]\/[0-9]+) .*/\1/p')
+EKKO_MULTICAST=224.1.0.1
+EKKO_POLL_RATE=30
+
+
+log "Ekko botstrapped completed"
+
+function respond_to_shouts() {
+  log "EKKO: $SERVICE_NAME - $HOST_IP:$SERVICE_PORT"
+  sleep 1
+
+  read -r -d '' service_description <<EOF
+  {
+    "service" :{
+      "name":"${SERVICE_NAME}",
+      "ip":"${HOST_IP}",
+      "port":"${SERVICE_PORT}"
+    }
+  }
+EOF
+
+  socat -d UDP4-RECVFROM:6666,ip-add-membership="${EKKO_MULTICAST}":"${HOST_IP}",fork EXEC:"echo ${service_description}"
+}
+
+
+function shout() {
+  log "Performing shout on ${EKKO_MULTICAST} with ${EKKO_POLL_RATE}s intervals"
+  echo | socat STDIO UDP4-DATAGRAM:"${EKKO_MULTICAST}":6666,range="${NETWORK_MASK}"
+}
+
+function keep_shouting() {
+  while true; do
+    shout
+    sleep "$EKKO_POLL_RATE"
+  done
+}
+
+case $1 in
+  listen)
+    respond_to_shouts
+    ;;
+  shout)
+    keep_shouting
+    ;;
+  *)
+    echo "You need to choose (ekko/shout)"
+    exit 1
+    ;;
+esac
