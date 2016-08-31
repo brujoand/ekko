@@ -16,22 +16,13 @@ function respond_to_shouts() {
   log "EKKO: $SERVICE_NAME - $HOST_IP:$SERVICE_PORT"
   sleep 1
 
-  read -r -d '' service_description <<EOF
-  {
-    "service" :{
-      "name":"${SERVICE_NAME}",
-      "ip":"${HOST_IP}",
-      "port":"${SERVICE_PORT}"
-    }
-  }
-EOF
+  service_description="${SERVICE_NAME};${HOST_IP};${SERVICE_PORT};"
 
-  socat -d UDP4-RECVFROM:6666,ip-add-membership="${EKKO_MULTICAST}":"${HOST_IP}",fork EXEC:"echo ${service_description}"
+  socat -d UDP4-RECVFROM:6666,ip-add-membership="${EKKO_MULTICAST}":"${HOST_IP}",fork EXEC:"echo ${service_description}" 2>&1 | sed 's/.* Connection reset by peer$/Responded to shout/'
 }
 
 
 function shout() {
-  log "Performing shout on ${EKKO_MULTICAST} with ${EKKO_POLL_RATE}s intervals"
   echo | socat STDIO UDP4-DATAGRAM:"${EKKO_MULTICAST}":6666,range="${NETWORK_MASK}"
 }
 
@@ -41,7 +32,7 @@ function keep_shouting() {
   response=
   echo ${response}
   while true; do
-    services="{ services: [ $(shout | sed 's/^}$/,}/') ] }"
+    services="$(shout)"
     "$hook_script" "${services}"
     sleep "$EKKO_POLL_RATE"
   done
